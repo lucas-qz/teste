@@ -61,4 +61,9 @@ jobs:
     # 6. Faz o deploy no cluster Kubernetes
     - name: Deploy to Kubernetes
       run: |
-        kubectl apply -f kubernetes.yaml
+        # 'my-app' é o nome do container (tenho um documento explicando como descobrir o nome do container **mas pod ver no proprio yaml do kubernetes)
+        # ele tenta atualizar o container, mas se der errado por conta do container ainda não existir, ele vai rodar o outro comando de baixo
+        kubectl set image deployment/my-app my-app=lucasqz/kubernetes2:latest
+        #kubectl apply -f kubernetes.yaml
+        kubectl rollout status deployment/my-app
+        
