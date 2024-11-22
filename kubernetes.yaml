@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: my-app
-        image: lucasqz/kubernetes2:latest2
+        image: lucasqz/kubernetes2:${{ github.sha }}
         ports:
         - containerPort: 8000
 
