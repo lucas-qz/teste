@@ -31,6 +31,13 @@ jobs:
     - name: Update kubeconfig
       run: eksctl utils write-kubeconfig --cluster=meu-cluster --region=us-east-1
 
+    # 2 - Login no Docker Hub
+    - name: Log in to Docker Hub # nome pra esse passo
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }} # SECRETY - usuario do Docker Hub
+        password: ${{ secrets.DOCKER_PASSWORD }} # SECRETY - senha do Docker Hub
+
     # 5. Faz o build da imagem Docker
     - name: Build and Push Docker Image
       uses: docker/build-push-action@v5
