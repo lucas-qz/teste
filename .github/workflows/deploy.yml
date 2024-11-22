@@ -69,59 +69,100 @@ jobs:
         
         
     # 6. Atualiza ou cria o Deployment no Kubernetes
-    - name: Check if Deployment Exists
-      id: check-deployment
-      run: |
-        if kubectl get deployment my-app >/dev/null 2>&1; then
-          echo "exists=true" >> $GITHUB_ENV
-        else
-          echo "exists=false" >> $GITHUB_ENV
-        fi
+#    - name: Check if Deployment Exists
+#      id: check-deployment
+#      run: |
+#        if kubectl get deployment my-app >/dev/null 2>&1; then
+#          echo "exists=true" >> $GITHUB_ENV
+#        else
+#          echo "exists=false" >> $GITHUB_ENV
+#        fi
+#
+#    - name: Handle Deployment
+#      run: |
+#        if [ "${{ env.exists }}" = "true" ]; then
+#          echo "Updating existing Deployment..."
+#          kubectl set image deployment/my-app my-app=lucasqz/kubernetes2:${{ github.sha }}
+#        else
+#          echo "Creating new Deployment..."
+#          cat <<EOF > kubernetes.yaml
+#          apiVersion: apps/v1
+#          kind: Deployment
+#          metadata:
+#            name: my-app
+#            labels:
+#              app: my-app
+#          spec:
+#            replicas: 1
+#            selector:
+#              matchLabels:
+#                app: my-app
+#            template:
+#              metadata:
+#                labels:
+#                  app: my-app
+#              spec:
+#                containers:
+#                - name: my-app
+#                  image: lucasqz/kubernetes2:${{ github.sha }}
+#                  ports:
+#                  - containerPort: 8000
+#
+#          ---
+#
+#          apiVersion: v1
+#          kind: Service
+#          metadata:
+#            name: my-app-service
+#          spec:
+#            type: LoadBalancer
+#            selector:
+#              app: my-app
+#            ports:
+#            - protocol: TCP
+#              port: 80
+#              targetPort: 8000
+#          EOF
+#          kubectl apply -f kubernetes.yaml
+#        fi
 
-    - name: Handle Deployment
+    - name: Apply Kubernetes Deployment and Service
       run: |
-        if [ "${{ env.exists }}" = "true" ]; then
-          echo "Updating existing Deployment..."
-          kubectl set image deployment/my-app my-app=lucasqz/kubernetes2:${{ github.sha }}
-        else
-          echo "Creating new Deployment..."
-          cat <<EOF > kubernetes.yaml
-          apiVersion: apps/v1
-          kind: Deployment
-          metadata:
-            name: my-app
-            labels:
+        cat <<EOF > kubernetes.yaml
+        ---
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: my-app
+          labels:
+            app: my-app
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
               app: my-app
-          spec:
-            replicas: 1
-            selector:
-              matchLabels:
+          template:
+            metadata:
+              labels:
                 app: my-app
-            template:
-              metadata:
-                labels:
-                  app: my-app
-              spec:
-                containers:
-                - name: my-app
-                  image: lucasqz/kubernetes2:${{ github.sha }}
-                  ports:
-                  - containerPort: 8000
-
-          ---
-
-          apiVersion: v1
-          kind: Service
-          metadata:
-            name: my-app-service
-          spec:
-            type: LoadBalancer
-            selector:
-              app: my-app
-            ports:
-            - protocol: TCP
-              port: 80
-              targetPort: 8000
-          EOF
-          kubectl apply -f kubernetes.yaml
-        fi
+            spec:
+              containers:
+              - name: my-app
+                image: lucasqz/kubernetes2:${{ github.sha }}
+                ports:
+                - containerPort: 8000
+        ---
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: my-app-service
+        spec:
+          type: LoadBalancer
+          selector:
+            app: my-app
+          ports:
+          - protocol: TCP
+            port: 80
+            targetPort: 8000
+        EOF
+        kubectl apply -f kubernetes.yaml
