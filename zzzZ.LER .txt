@@ -160,7 +160,7 @@ COMANDO:     python manage.py runserver   ( http://127.0.0.1:8000/ )
 - PASSO 5 - ENVIAR ESSA IMAGEM PRO DOCKER HUB
             - LOGAR NO DOCKER HUB PELO TERMINAL:    docker login
             - ENVIAR IMAGEM PRO DOCKER HUB:         docker push <nome_usuario>/<nome_repositorio>:<nome_da_tag_de_versão> 
-		      - NO NOSSO CASO:                      docker push  lucasqz/kubernetes2:v4
+		      - NO NOSSO CASO:                          docker push  lucasqz/kubernetes2:v4
             - DESLOGAR DO DOCKER HUB PELO TERMINAL: docker logout
 
 - PASSO 7 - ATUALIZAR IMAGEM NOS PODS:
