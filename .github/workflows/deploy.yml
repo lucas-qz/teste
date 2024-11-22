@@ -1,0 +1,46 @@
+name: Deploy to EKS
+
+on:
+  push:
+    branches: ['master']
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Verifica o código
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # 2. Configura o AWS CLI
+    - name: Configure AWS CLI
+      uses: aws-actions/configure-aws-credentials@v3
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1  # Altere para sua região
+
+    # 3. Instala o eksctl
+    - name: Install eksctl
+      run: |
+        curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+        sudo mv /tmp/eksctl /usr/local/bin
+
+    # 4. Configura o cluster EKS
+    - name: Update kubeconfig
+      run: eksctl utils write-kubeconfig --cluster=meu-cluster --region=us-east-1
+
+    # 5. Faz o build da imagem Docker
+    - name: Build and Push Docker Image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: lucasqz/kubernetes2:latest
+
+    # 6. Faz o deploy no cluster Kubernetes
+    - name: Deploy to Kubernetes
+      run: |
+        kubectl apply -f kubernetes.yaml

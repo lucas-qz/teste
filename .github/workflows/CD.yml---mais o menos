@@ -1,0 +1,52 @@
+name: Django AWS Deploy with Docker
+
+on:
+  push:
+    branches: ['master'] # Executa o deploy quando há um push na branch master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Fazer checkout do código
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # 2. Configurar Python (se necessário para dependências)
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12.3'
+
+    # 3. Configurar secrets e permissões
+    - name: Configure SSH Access
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/aws-key.pem
+        chmod 600 ~/.ssh/aws-key.pem
+
+    # 4. Copiar arquivos para o servidor
+    - name: Transfer files to AWS
+      run: |
+        scp -i ~/.ssh/aws-key.pem -o "StrictHostKeyChecking=no" \
+          -r ./docker-compose.yml ./django ./mysql ./config ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/projeto_django/
+
+    # 5. Conectar e realizar o deploy no servidor
+    - name: Deploy Docker Compose on AWS
+      run: |
+        ssh -i ~/.ssh/aws-key.pem -o "StrictHostKeyChecking=no" ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+          cd /home/ubuntu/projeto_django
+          
+          # Parar e remover containers existentes (se necessário)
+          docker-compose down || true
+
+          # exclui todas as imagens (**o 'f' é p q ele ñ peça pra confirmar o comando)
+          docker image prune -af || true
+
+          # Recriar containers
+          docker-compose up -d --build
+          #docker-compose up -d --build --remove-orphans    **
+          #docker-compose build --no-cache                  **ñ cria os container
+          #docker-compose build --force-rm                  **ñ cria os container
+        EOF

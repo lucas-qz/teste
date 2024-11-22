@@ -1,0 +1,38 @@
+--- # esse --- serve p separar o yaml do SERVICE com o do DEPLOYMENT (primeiro vem o do Service depois o do Deployment)
+
+apiVersion: v1 # repare q aqui usamos apenas 'v1' e não 'apps/v1' (o professor disse q p entender temos q ver a documentação)
+kind: Service # essa parte servirá para criarmos um SERVICE
+metadata: # serve pra dar nome a alguma coisa, no caso, quero dar nome a esse Service
+  name: django-service # é o nome que quero dar ao Service
+spec: # especificações desse Service: - vou especificar algumas coisas abaixo:
+  selector:
+    app:
+      django-app # aqui é onde linkamos esse parte do yaml SERVICE com a parte do yaml do DEPLOYMENT
+      # lá na parte do yaml DEPLOYMENT informamos q o 'app' se chamaria 'django-app', portanto aqui colocamos o mesmo nome
+  ports:
+    - protocol: "TCP"
+      port: 80 # especificamos a porta por onde os usuarios vão acessar o Cluster
+      targetPort: 8000 # especificamos a porta da aplicação (a porta padrão pra django é a 8000)
+  type: LoadBalancer # especificamos o tipo do service. Existem varios tipos de service, mas o mais usado é o LoadBalancer
+ 
+--- # esse --- serve p separar o yaml do SERVICE com o do DEPLOYMENT (primeiro vem o do Service depois o do Deployment)
+
+apiVersion: apps/v1 # versão da api do Kubernetes (o professor disse q p saber qual versão usar temos q ver a documentação)
+kind: Deployment # essa parte servirá para criarmos um DEPLOYMENT
+metadata: # serve pra dar nome a alguma coisa, no caso, quero dar nome a esse Deployment
+  name: django-app-deployment # é o nome que quero dar ao Deployment
+spec: # especificações desse Deployment: - vou especificar sobre as replicas
+  replicas: 1 # quero que o Deployment crie 2 replicas, ou seja, 2 PODs do projeto
+  selector: # serve pra dar um nome para essa 'spec'
+    matchLabels:
+      app: django-app # é o nome que quero dar à 'spec'  **repare q há duas linhas 'app: django-app'. Ambas tem q ter o mesmo nome
+  template: # descreve como a imagem vai rodar
+    metadata: # serve pra dar nome a alguma coisa, no caso, quero dar nome a essa template
+      labels:
+        app: django-app # é o nome que quero dar a esse template
+    spec: # especificações desse Template: vou especificar sobre os containers
+      containers: # abaixo vou escolher o 'nome' pro container e declarar a 'imagem' q vamos usar
+        - name: django # é o nome que quero dar ao Container
+          image: lucasqz/kubernetes1:v2 # <nome_usuario>/<nome_repositorio>:<nome_pra_tag_de_versão>  **veja no Docker Hub
+          ports:
+            - containerPort: 8000 # porta do container (a porta padrão pra django é a 8000)

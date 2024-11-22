@@ -1,0 +1,215 @@
+--- CRIAR AMBIENTE VIRTUAL ---------------------------------------------------
+COMANDO: python -m venv venv
+COMANDO: .\venv\Scripts\activate
+------------------------------------------------------------------------------
+
+
+
+--- INSTALAR DJANGO + CRIAR PROJETO + CRIAR APP ------------------------------
+- INSTALAR DJANGO:  pip install django
+- CRIAR PROJETO:    django-admin startproject a_core .
+
+- em 'settings.py' mudar:
+LANGUAGE_CODE = "pt-br"
+TIME_ZONE = "America/Sao_Paulo"
+ALLOWED_HOSTS = ['*']   # para que qndo a aplicação estiver na Nuvem ela possa ser acessada de qualquer dominio
+
+- CRIAR APP:         python manage.py startapp app_um
+
+- criar 'urls.py'
+- em 'urls.py' escrever:
+from django.urls import path
+from . import views as vw
+urlpatterns = [
+    #path('nomedessarota',vw.nomedaview,name='nomedessarota'),  # MODELO DE URL
+]
+
+--- NA PASTA DO PROJETO
+- em 'settings.py' em 'INSTALLED_APPS' adicinar o app. Exemplo: "app_um.apps.AppUmConfig",
+- em 'urls.py' - importar include assim: from django.urls import path, include
+               - criar uma rota para acessar as rotas do app. Exemplo: path("", include('app_um.urls')), 
+
+--- TESTAR
+COMANDO:     python manage.py runserver   ( http://127.0.0.1:8000/ )
+------------------------------------------------------------------------------
+
+
+
+--- CRIAR IMAGEM DA APLICAÇÃO + TESTAR + SUBIR PARA O DOCKER HUB --------------
+- CRIAR REQUIREMENTS.TXT - COMANDO:   pip freeze > requirements.txt
+
+- CRIAR Dockerfile   *veja ele para entender
+
+- NO DOCKER HUB CRIAR REPOSITORIO - Ficou assim:  lucasqz/kubernetes2
+
+- Certifique-se de que o Docker esteja aberto na sua maquina (obviamente ele já deve ter sido instalado na sua maquina antes)
+
+- BUILD DA IMAGEM - COMANDO:   docker build -t <nome_da_imagem> .  **<nome_da_imagem> deve ser <nome_usuario>/<nome_repositorio>
+  - NO NOSSO CASO:             docker build -t lucasqz/kubernetes2 .  
+- CONFIRME QUE CRIOU A IMAGEM - COMANDO: docker images -a
+
+-----------
+- CRIE CONTAINER PARA TESTAR   - COMANDO: docker run -d -p 8000:8000 --name djangodocker lucasqz/kubernetes2
+- CONFIRME QUE CRIOU CONTAINER - COMANDO: docker ps -a
+- ACESSE A APLICAÇÃO EM CONTAINER: http://127.0.0.1:8000/
+- EXCLUA O CONTAINER - COMANDO:           docker rm <id_do_container> -f       **<id_do_container> encontre com comando: docker ps -a
+-----------
+
+- SUBIR IMAGEM PARA O DOCKER HUB
+ - logar no Docker Hub pelo terminal:  docker login
+ - enviar a imagem pro docker hub:     docker push <nome_da_imagem> 
+   - NO NOSSO CASO:                    docker push lucasqz/kubernetes2
+ - fazer logout pelo terminal:         docker logout
+------------------------------------------------------------------------------
+
+
+--- CRIE O ARQUIVO YAML DO KUBERNETS + TESTAR --------------------------------
+- CRIE O ARQUIVO YAML DO KUBERNETS  *veja ele para entender
+
+- TESTANDO COM MINIKUBE
+*Minikube é a forma de simular um cluster na sua maquina (ver AULAS de KUBERNETES)
+- CERTIFIQUE-SE QUE MINIKUBE ESTEJA INICIADO:
+- STATUS DO MINIKUBE:  minikube status
+- INICIAR MINIKUBE:    minikube start --driver=docker	(ele cria uma imagem e um container do minikube na sua maquina pra simular um cluster Kubernetes)
+
+- RODAR O ARQUIVO YAML DO KUBERNETS NO CLUSTER
+- COMANDO:          kubectl apply -f <arquivo_yaml>     **ATENÇÃO: acessar a pasta do projeto pra poder executar isso
+  - NO NOSSO CASO:  kubectl apply -f kubernetes.yaml
+
+- VISUALIZAR DEPLOYMENT - COMANDO: kubectl get deployment          **veja que o deployment foi criado e está rodando em 2 replicas
+- VISUALIZAR PODS       - COMANDO: kubectl get pods                **veja que os 2 Pods foram criados e estão rodando
+- VISUALIZAR SERVICE:   - COMANDO: kubectl get service             **veja que o service foi criado
+
+- GERAR O IP DE ACESSO PARA O SERVICE: 
+**LEMBRE-SE:  - se tiver outro terminal aberto rodando esse comando feche com ctrl+c pra não dar conflito e travar o minikube
+		      - abra um novo cmd como administrador pra rodar esse comando pois o terminal ficará ocupado
+- COMANDO:            minikube service <nome_do_service>    **encontra <nome_do_service> com o comando: kubectl get service
+  - NO NOSSO CASO:    minikube service django-service
+
+- PARAR A EXECUÇÃO DA APLICAÇÃO - COMANDO: CTRL+C
+
+- PARAR A EXECUÇÃO DO ARQUIVO YAML
+- COMANDO:          kubectl delete -f <arquivo_yaml>     **ATENÇÃO: acessar a pasta do projeto pra poder executar isso
+  - NO NOSSO CASO:  kubectl delete -f kubernetes.yaml
+
+- VISUALIZAR DEPLOYMENT - COMANDO: kubectl get deployment          **veja que o deployment foi deletado
+- VISUALIZAR PODS       - COMANDO: kubectl get pods                **veja que os 2 Pods foram deletados
+- VISUALIZAR SERVICE:   - COMANDO: kubectl get service             **veja que o service foi deletado
+
+- PARAR O MINIKUBE - COMANDO:      minikube stop
+- EXCLUA O CONTAINER DO MINIKUBE:  docker rm <id_do_container> -f       **<id_do_container> encontre com comando: docker ps -a
+- EXCLUA A IMAGEM DO MINIKUBE:     docker rmi <id_da_imagem> -f         **<id_da_imagem> encontre com comando: docker images -a
+------------------------------------------------------------------------------
+
+
+
+--- CRIAR O CLUSTER KUBERNETES NA AWS COM EKS E eksctl ------------------------
+*Lembra qndo usamos o Minikube pra simular um Cluster Kubernetes? Agora teremos um Cluster Kubernetes de verdade na AWS
+- SEGUIR O PASSO A PASSO DO CHAT GPT: veja o documento que criei "1. Criar cluster EKS com eksctl .mhtml"
+
+
+
+
+
+/=-/-/=/=-/-/=/=-/-/=/=-/-/=/=-/-/=/=-/-/=/=-/-/=/=-/-/=/=-/-/=/=-/-/=/=-/-/=/=-/-/=/=-/-/=/=-/-/=/=-/-/=/=-/-/=/=-/-/=/=-/-/=/=-/-/=
+
+
+
+
+
+--- FAZER DEPLOY DA APLICAÇÃO NO CLUSTER QUE CRIAMOS --------------------------
+- SEGUIR O PASSO A PASSO DO CHAT GPT: veja o documento que criei "2. Deploy de Aplicação no Cluster EKS da AWS .mhtml"
+- Esse Video tambem ajuda: https://www.youtube.com/watch?v=QiE6YpA5jk4
+
+---------- O PASSO A PASSO ENSINA O SEGUINTE:
+- RODAR O ARQUIVO YAML DO KUBERNETS NO CLUSTER
+- COMANDO:          kubectl apply -f <arquivo_yaml>     **ATENÇÃO: acessar a pasta do projeto pra poder executar isso
+  - NO NOSSO CASO:  kubectl apply -f kubernetes.yaml
+
+- VISUALIZAR DEPLOYMENT - COMANDO: kubectl get deployment          **veja que o deployment foi criado e está rodando em 2 replicas
+- VISUALIZAR PODS       - COMANDO: kubectl get pods                **veja que os 2 Pods foram criados e estão rodando
+- VISUALIZAR SERVICE:   - COMANDO: kubectl get service             **veja que o service foi criado
+
+- GERAR O IP DE ACESSO PARA O SERVICE: 
+- COMANDO:             kubectl get service  <nome_do_service>    **encontra <nome_do_service> com o comando: kubectl get service
+  - NO NOSSO CASO:     kubectl get service  django-service
+- TESTAR NO NAVEGADOR: http://<EXTERNAL-IP>
+
+- PARAR A EXECUÇÃO DO ARQUIVO YAML
+- COMANDO:          kubectl delete -f <arquivo_yaml>     **ATENÇÃO: acessar a pasta do projeto pra poder executar isso
+  - NO NOSSO CASO:  kubectl delete -f kubernetes.yaml
+
+- VISUALIZAR DEPLOYMENT - COMANDO: kubectl get deployment          **veja que o deployment foi deletado
+- VISUALIZAR PODS       - COMANDO: kubectl get pods                **veja que os 2 Pods foram deletados
+- VISUALIZAR SERVICE:   - COMANDO: kubectl get service             **veja que o service foi deletado
+------------------------------------------------------------------------------
+
+
+
+--- ATUALIZAR A IMAGEM NOS PODS ----------------------------------------------
+*imagine que fizemos alterações na aplicação que está em nossa maquina. Como atualizar isso nos Pods?
+
+- PASSO 1 - ATUALIZAR O PROJETO:                    exemplo, fiz uma edição no h1 do html
+- PASSO 2 - CRIAR NOVA IMAGEM COM TAG DE VERSÃO:    docker build -t <nome_usuario>/<nome_repositorio>:<nome_pra_tag_de_versão> .   **isso ta no Docker Hub
+            - NO NOSSO CASO:                        docker build -t lucasqz/kubernetes2:v4 .
+- PASSO 3 - CONFIRME SE CRIOU IMAGEM:               docker images -a
+- PASSO 4 - TESTAR SE IMAGEM FUNCIONA
+            - CRIAR CONTAINER COM A IMAGEM:         docker run -d -p 8000:8000 --name djangodocker lucasqz/kubernetes2:v4           **só pra testar
+            - CONFERIR SE CRIOU CONTAINER:          docker ps -a
+            - EXCLUIR CONTAINER:                    docker rm <id_do_container> -f
+- PASSO 5 - ENVIAR ESSA IMAGEM PRO DOCKER HUB
+            - LOGAR NO DOCKER HUB PELO TERMINAL:    docker login
+            - ENVIAR IMAGEM PRO DOCKER HUB:         docker push <nome_usuario>/<nome_repositorio>:<nome_da_tag_de_versão> 
+		      - NO NOSSO CASO:                      docker push  lucasqz/kubernetes2:v4
+            - DESLOGAR DO DOCKER HUB PELO TERMINAL: docker logout
+
+- PASSO 7 - ATUALIZAR IMAGEM NOS PODS:
+  A - DESCOBRIR O NOME DO CONTAINER - COMANDO: kubectl get pod <nome-do-pod> -n <namespace> -o jsonpath='{.spec.containers[*].name}'
+     - NO NOSSO CASO:                          kubectl get pod django-app-deployment-9d7d49898-92dtj -n default -o jsonpath='{.spec.containers[*].name}'
+     **Duvidas sobre Nome de Container VEJA: "3.2. Como descobrir o nome dos containers de um Pod .mhtml"
+  
+  B - ATUALIZAR IMAGEM NOS PODS(Container) DAS INSTANCIAS AWS
+  C - COMANDO:         kubectl set image deployment/<nome_do_deployment> <nome_do_container>=<nome_da_nova_imagem>:<nome_da_tag_de_versão>
+    - NO NOSSO CASO:   kubectl set image deployment/django-app-deployment django=lucasqz/kubernetes2:v4
+    ** <nome_da_nova_imagem>:<nome_da_tag_de_versão> vc consegue com COMANDO:   docker images -a
+     **Duvidas sobre Atualizar Imagem nos Pods VEJA: "3. Como Atualizar a imagem nos containers do Cluster .mhtml"
+  
+  D - VEJA EM
+  - NAVEGADOR:             **veja q a pagina mudou conforme esperava (pode demorar alguns segundos)
+  - VISUALIZAR DEPLOYMENT - COMANDO: kubectl get deployment          **veja que o deployment ta igual antes, ou seja, ñ deu problema
+  - VISUALIZAR PODS       - COMANDO: kubectl get pods                **veja que o nome do Pod mudou, ou seja, foi atualzado corretamente
+  - VISUALIZAR SERVICE:   - COMANDO: kubectl get service             **eja que o deployment ta igual antes, ou seja, ñ deu problema
+
+  E - **OBS SOBRE ERRO: 
+    - só funcionou qndo configurei assim: 
+      - no YAML do Kubernetes replicas=1 (qndo estava usando replicas=2 dava erro)
+      - na criação do Cluster qnd de instancias=2 min=1 max=5 (ñ se se tem relação, mas antes estava: qnt instancias=2, min=1, max=3)
+------------------------------------------------------------------------------
+
+
+
+--- DESFAZER ATUALIZAÇÃO (ROLLBACK) ------------------------------------------
+- PASSO 1 - NO ARQUIVO.YAML DE DEPLOYMENT:          alterar a tag da imagem p a tag da versão anterior
+- PASSO 2 - EXECUTAR O ARQUIVO.YAML PRA DEPLOYMENT: kubectl apply -f <arquivo_yaml>             **ATENÇÃO: acessar a pasta do projeto pra poder executar isso
+            - NO NOSSO CASO:                        kubectl apply -f kubernetes.yaml
+- PASSO 3 - VER ATUALIZAÇÃO: - NO NAVEGADOR:        acesse a aplicação e verá que ela voltou ao que era antes
+
+- PASSO 4 - VEJA EM
+  - NAVEGADOR:              **veja q a pagina voltou ao q era antes, conforme esperavamos (pode demorar alguns segundos)
+  - VISUALIZAR DEPLOYMENT - COMANDO: kubectl get deployment          **veja que o deployment ta igual antes, ou seja, ñ deu problema
+  - VISUALIZAR PODS       - COMANDO: kubectl get pods                **veja que o nome do Pod mudou, ou seja, foi atualzado corretamente
+  - VISUALIZAR SERVICE:   - COMANDO: kubectl get service             **eja que o deployment ta igual antes, ou seja, ñ deu problema
+------------------------------------------------------------------------------
+ 
+
+
+--- DESTRUIR O CLUSTER --------------------------------------------------------
+**OBS: demora alguns minutos até concluir a exclusão total do cluster
+
+- COMANDO:         eksctl delete cluster --name <nome_do_cluster> --region <região_aws_do_cluster>
+ - NO NOSSO CASO:  eksctl delete cluster --name meu-cluster --region us-east-1
+
+- REPARE QUE: - vai deletar as instancias do cluster
+              - em 'EKS/cluster' na AWS - vai deletar o cluster
+---------------------------------------------------------------------------------
+
