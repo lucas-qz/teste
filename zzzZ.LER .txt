@@ -169,10 +169,10 @@ COMANDO:     python manage.py runserver   ( http://127.0.0.1:8000/ )
      **Duvidas sobre Nome de Container VEJA: "3.2. Como descobrir o nome dos containers de um Pod .mhtml"
   
   B - ATUALIZAR IMAGEM NOS PODS(Container) DAS INSTANCIAS AWS
-  C - COMANDO:         kubectl set image deployment/<nome_do_deployment> <nome_do_container>=<nome_da_nova_imagem>:<nome_da_tag_de_versão>
-    - NO NOSSO CASO:   kubectl set image deployment/django-app-deployment django=lucasqz/kubernetes2:v4
-    ** <nome_da_nova_imagem>:<nome_da_tag_de_versão> vc consegue com COMANDO:   docker images -a
-     **Duvidas sobre Atualizar Imagem nos Pods VEJA: "3. Como Atualizar a imagem nos containers do Cluster .mhtml"
+  C - COMANDO:           kubectl set image deployment/<nome_do_deployment> <nome_do_container>=<nome_da_nova_imagem>:<nome_da_tag_de_versão>
+      - NO NOSSO CASO:   kubectl set image deployment/django-app-deployment django=lucasqz/kubernetes2:v4
+      ** <nome_da_nova_imagem>:<nome_da_tag_de_versão> vc consegue com COMANDO:   docker images -a
+      **Duvidas sobre Atualizar Imagem nos Pods VEJA: "3. Como Atualizar a imagem nos containers do Cluster .mhtml"
   
   D - VEJA EM
   - NAVEGADOR:             **veja q a pagina mudou conforme esperava (pode demorar alguns segundos)

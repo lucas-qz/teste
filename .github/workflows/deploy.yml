@@ -67,3 +67,4 @@ jobs:
         #kubectl apply -f kubernetes.yaml
         kubectl rollout status deployment/my-app
         
+        
